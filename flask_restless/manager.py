@@ -409,6 +409,7 @@ class APIManager(object):
                                    view_func=api_view)
             # For example, /api/person/1/computers/2.
             blueprint.add_url_rule(relation_instance_endpoint,
+                                   defaults={'relationname': relationname},
                                    methods=instance_methods,
                                    view_func=api_view)
         else:
