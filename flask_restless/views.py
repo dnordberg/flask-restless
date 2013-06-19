@@ -1006,11 +1006,7 @@ class API(ModelView):
                     abort(404)
                 result = to_dict(related_value_instance, deep)
             else:
-                # for security purposes, don't transmit list as top-level JSON
-                if is_like_list(instance, relationname):
-                    result = self._paginated(list(related_value), deep)
-                else:
-                    result = to_dict(related_value, deep)
+                result = self._inst_to_dict(related_value, deep)
         for postprocessor in self.postprocessors['GET_SINGLE']:
             postprocessor(result=result)
         return jsonpify(result)

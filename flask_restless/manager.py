@@ -202,7 +202,8 @@ class APIManager(object):
                              include_methods=None, validation_exceptions=None,
                              results_per_page=10, max_results_per_page=100,
                              post_form_preprocessor=None,
-                             preprocessors=None, postprocessors=None):
+                             preprocessors=None, postprocessors=None,
+                             relationname=None):
         """Creates an returns a ReSTful API interface as a blueprint, but does
         not register it on any :class:`flask.Flask` application.
 
@@ -389,6 +390,7 @@ class APIManager(object):
             possibly_empty_instance_methods = methods & frozenset(('GET', ))
         instance_methods = \
             methods & frozenset(('GET', 'PATCH', 'DELETE', 'PUT'))
+
         # the base URL of the endpoints on which requests will be made
         collection_endpoint = '/{0}'.format(collection_name)
         # the name of the API, for use in creating the view and the blueprint
@@ -404,6 +406,7 @@ class APIManager(object):
         for key, value in self.universal_postprocessors.items():
             postprocessors_[key] = value + postprocessors_[key]
         # the view function for the API for this model
+
         api_view = API.as_view(apiname, self.session, model, exclude_columns,
                                include_columns, include_methods,
                                validation_exceptions, results_per_page,
@@ -415,49 +418,60 @@ class APIManager(object):
         # collection only, the second is for methods which may or may not
         # specify an instance, the third is for methods which must specify an
         # instance
+
         # TODO what should the second argument here be?
         # TODO should the url_prefix be specified here or in register_blueprint
         blueprint = Blueprint(blueprintname, __name__, url_prefix=url_prefix)
-        # For example, /api/person.
-        blueprint.add_url_rule(collection_endpoint,
-                               methods=no_instance_methods, view_func=api_view)
-        # For example, /api/person/1.
-        blueprint.add_url_rule(collection_endpoint,
-                               defaults={'instid': None, 'relationname': None,
-                                         'relationinstid': None},
-                               methods=possibly_empty_instance_methods,
-                               view_func=api_view)
+
         # the per-instance endpoints will allow both integer and string primary
         # key accesses
         instance_endpoint = '{0}/<instid>'.format(collection_endpoint)
-        # For example, /api/person/1.
-        blueprint.add_url_rule(instance_endpoint, methods=instance_methods,
-                               defaults={'relationname': None,
-                                         'relationinstid': None},
-                               view_func=api_view)
-        # add endpoints which expose related models
-        relation_endpoint = '{0}/<relationname>'.format(instance_endpoint)
-        relation_instance_endpoint = \
-            '{0}/<relationinstid>'.format(relation_endpoint)
-        # For example, /api/person/1/computers.
-        blueprint.add_url_rule(relation_endpoint,
-                               methods=possibly_empty_instance_methods,
-                               defaults={'relationinstid': None},
-                               view_func=api_view)
-        # For example, /api/person/1/computers/2.
-        blueprint.add_url_rule(relation_instance_endpoint,
-                               methods=instance_methods,
-                               view_func=api_view)
-        # if function evaluation is allowed, add an endpoint at /api/eval/...
-        # which responds only to GET requests and responds with the result of
-        # evaluating functions on all instances of the specified model
-        if allow_functions:
-            eval_api_name = apiname + 'eval'
-            eval_api_view = FunctionAPI.as_view(eval_api_name, self.session,
-                                                model)
-            eval_endpoint = '/eval' + collection_endpoint
-            blueprint.add_url_rule(eval_endpoint, methods=['GET'],
-                                   view_func=eval_api_view)
+
+        if relationname:
+            # add endpoints which expose related models
+            relation_endpoint = '{0}/{1}'.format(instance_endpoint,
+                                                 relationname)
+            relation_instance_endpoint = '{0}/<relationinstid>'.format(
+                relation_endpoint)
+            # For example, /api/person/1/computers.
+            blueprint.add_url_rule(relation_endpoint,
+                                   methods=possibly_empty_instance_methods,
+                                   defaults={'relationinstid': None,
+                                             'relationname': relationname},
+                                   view_func=api_view)
+            # For example, /api/person/1/computers/2.
+            blueprint.add_url_rule(relation_instance_endpoint,
+                                   methods=instance_methods,
+                                   view_func=api_view)
+        else:
+            # For example, /api/person.
+            blueprint.add_url_rule(collection_endpoint,
+                                   methods=no_instance_methods,
+                                   view_func=api_view)
+            # For example, /api/person/1.
+            blueprint.add_url_rule(collection_endpoint,
+                                   defaults={'instid': None,
+                                             'relationname': None,
+                                             'relationinstid': None},
+                                   methods=possibly_empty_instance_methods,
+                                   view_func=api_view)
+            # For example, /api/person/1.
+            blueprint.add_url_rule(instance_endpoint, methods=instance_methods,
+                                   defaults={'relationname': None,
+                                             'relationinstid': None},
+                                   view_func=api_view)
+            # if function evaluation is allowed, add an endpoint at
+            # /api/eval/...  which responds only to GET requests and responds
+            # with the result of evaluating functions on all instances of the
+            # specified model
+            if allow_functions:
+                eval_api_name = apiname + 'eval'
+                eval_api_view = FunctionAPI.as_view(eval_api_name, self.session,
+                                                    model)
+                eval_endpoint = '/eval' + collection_endpoint
+                blueprint.add_url_rule(eval_endpoint, methods=['GET'],
+                                       view_func=eval_api_view)
+
         return blueprint
 
     def create_api(self, *args, **kw):
