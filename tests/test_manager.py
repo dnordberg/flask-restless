@@ -481,7 +481,6 @@ class TestAPIManager(TestSupport):
         assert 1 == len(data['objects'])
         assert 'foo' == data['objects'][0]['name']
 
-<<<<<<< HEAD
     def test_expose_lazy_relations(self):
         """Tests that lazy relations are exposed at a URL which is a child of
         the instance URL.
@@ -501,8 +500,6 @@ class TestAPIManager(TestSupport):
         assert 1 == len(data['objects'])
         assert 'foo' == data['objects'][0]['name']
 
-=======
->>>>>>> Fix tests for feature manually specify model relation endpoints.
     def test_set_hybrid_property(self):
         """Set a hybrid property"""
 

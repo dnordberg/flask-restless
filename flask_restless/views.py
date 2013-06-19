@@ -56,8 +56,11 @@ from .helpers import session_query
 from .helpers import strings_to_dates
 from .helpers import to_dict
 from .helpers import upper_keys
+<<<<<<< HEAD
 from werkzeug.exceptions import BadRequest
 
+=======
+>>>>>>> Explicit declaration of exposed sub-resources.
 from .helpers import get_foreign_keys
 from .search import create_query
 from .search import search
@@ -908,6 +911,7 @@ class API(ModelView):
         responses, see :ref:`searchformat`.
 
         """
+<<<<<<< HEAD
         # try to get search query from the request query parameters
         try:
             search_params = json.loads(request.args.get('q', '{}'))
@@ -915,6 +919,8 @@ class API(ModelView):
             current_app.logger.exception(str(exception))
             return jsonify(message='Unable to decode data'), 400
 
+=======
+>>>>>>> Explicit declaration of exposed sub-resources.
         for preprocessor in self.preprocessors['GET_MANY']:
             preprocessor(search_params=search_params)
         # perform a filtered search
