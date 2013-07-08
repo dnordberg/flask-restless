@@ -98,6 +98,15 @@ def upper_keys(d):
     return dict(zip((k.upper() for k in d.keys()), d.values()))
 
 
+def get_foreign_keys(model):
+    """Yields foreign keys defined in the model."""
+    for name, column in model.__table__.columns.items():
+        foreign_keys = list(column.foreign_keys)
+        if foreign_keys:
+            for key in foreign_keys:
+                yield (name, key)
+
+
 def get_columns(model):
     """Returns a dictionary-like object containing all the columns of the
     specified `model` class.
