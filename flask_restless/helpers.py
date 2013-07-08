@@ -151,8 +151,7 @@ def get_related_association_proxy_model(attr):
 
 
 def has_field(model, fieldname):
-    """Returns ``True`` if the `model` has the specified field, and it is not
-    a hybrid property.
+    """Returns ``True`` if the `model` has the specified field.
 
     """
     return (hasattr(model, fieldname) and
