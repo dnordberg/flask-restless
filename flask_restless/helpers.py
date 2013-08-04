@@ -354,11 +354,10 @@ def to_dict(instance, deep=None, exclude=None, include=None,
         # If exclude or include is specified then we shouldn't be
         # adding relation results if no relation include, exclude,
         # or methods apply
-        if ((exclude is not None or exclude_relations is not None) or
-                (include is not None or include_relations is not None)) and \
-                (newexclude is None
-                    and newinclude is None and
-                    newmethods is None):
+        if any(x is not None for x in (exclude, include, exclude_relations,
+                                       include_relations)) \
+                and all(x is None for x in (newexclude, newinclude,
+                                            newmethods)):
             continue
 
         # Get the related value so we can see if it is None, a list, a query
