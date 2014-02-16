@@ -275,10 +275,6 @@ def to_dict(instance, deep=None, exclude=None, include=None,
     be called and their return values added to the returned dictionary.
 
     """
-    # Hack: Dont accept exclude empty lists
-    exclude = exclude or None
-    exclude_relations = exclude_relations or None
-
     if (exclude is not None or exclude_relations is not None) and \
             (include is not None or include_relations is not None):
         raise ValueError('Cannot specify both include and exclude.')
@@ -317,69 +313,33 @@ def to_dict(instance, deep=None, exclude=None, include=None,
             result[key] = to_dict(value)
     # recursively call _to_dict on each of the `deep` relations
     deep = deep or {}
-
-    for relation, rdeep in deep.iteritems():
-        # Skip relation if its included in exclude_columns
-        if exclude and relation in exclude:
-            continue
+    for relation, rdeep in deep.items():
         # Get the related value so we can see if it is None, a list, a query
         # (as specified by a dynamic relationship loader), or an actual
         # instance of a model.
         relatedvalue = getattr(instance, relation)
         if relatedvalue is None:
             result[relation] = None
-
+            continue
         # Determine the included and excluded fields for the related model.
         newexclude = None
         newinclude = None
-
-        if exclude_relations:
-            if relation in exclude_relations:
-                newexclude = exclude_relations[relation]
-            else:
-                # If the relation is not specifically excluded
-                # then we need to include it
-                newinclude = get_columns(
-                    type(getattr(instance, relation))).keys()
-        elif (include_relations and relation in include_relations):
+        if exclude_relations is not None and relation in exclude_relations:
+            newexclude = exclude_relations[relation]
+        elif (include_relations is not None and
+              relation in include_relations):
             newinclude = include_relations[relation]
-        else:
-            # If the relation isn't excluded or included specifically
-            # we should include
-            newinclude = get_columns(type(getattr(instance, relation))).keys()
-            newinclude = newinclude or None
-
         # Determine the included methods for the related model.
         newmethods = None
         if include_methods is not None:
             newmethods = [method.split('.', 1)[1] for method in include_methods
                           if method.split('.', 1)[0] == relation]
-
-        # If exclude or include is specified then we shouldn't be
-        # adding relation results if no relation include, exclude,
-        # or methods apply
-        if any(x is not None
-               for x in (exclude, include, exclude_relations,
-                         include_relations)) and \
-                all(x is None
-                    for x in (newexclude, newinclude, newmethods)):
-            continue
-
-        # Get the related value so we can see if it is None, a list, a query
-        # (as specified by a dynamic relationship loader), or an actual
-        # instance of a model.
-        relatedvalue = getattr(instance, relation)
-        if relatedvalue is None:
-            result[relation] = None
-            continue
-
         if is_like_list(instance, relation):
             result[relation] = [to_dict(inst, rdeep, exclude=newexclude,
                                         include=newinclude,
                                         include_methods=newmethods)
                                 for inst in relatedvalue]
             continue
-
         # If the related value is dynamically loaded, resolve the query to get
         # the single instance.
         if isinstance(relatedvalue, Query):
