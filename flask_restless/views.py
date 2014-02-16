@@ -986,7 +986,7 @@ class API(ModelView):
             search_params = json.loads(request.args.get('q', '{}'))
         except (TypeError, ValueError, OverflowError), exception:
             current_app.logger.exception(exception.message)
-            return jsonify_status_code(400, message='Unable to decode data')
+            return jsonify(message='Unable to decode data'), 400
         if instid is None:
             return self._search(self.model, search_params)
         for preprocessor in self.preprocessors['GET_SINGLE']:

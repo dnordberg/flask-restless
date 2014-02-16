@@ -221,11 +221,13 @@ class TestAPIManager(TestSupport):
         return in the JSON representation of instances of the model.
 
         """
-        all_columns = get_columns(self.Person)
         # allow all
         self.manager.create_api(self.Person, include_columns=None,
                                 url_prefix='/all')
-        self.manager.create_api(self.Person, include_columns=all_columns,
+        self.manager.create_api(self.Person,
+                                include_columns= ('age', 'birth_date',
+                                                  'computers', 'id',
+                                                  'is_minor', 'name', 'other'),
                                 url_prefix='/all2')
         # allow some
         self.manager.create_api(self.Person, include_columns=('name', 'age'),
@@ -247,6 +249,7 @@ class TestAPIManager(TestSupport):
         response = self.app.get('/all/person/{0}'.format(personid))
         for column in 'name', 'age', 'other', 'birth_date', 'computers':
             assert column in loads(response.data)
+        import ipdb; ipdb.set_trace()
         response = self.app.get('/all2/person/{0}'.format(personid))
         for column in 'name', 'age', 'other', 'birth_date', 'computers':
             assert column in loads(response.data)
@@ -493,6 +496,7 @@ class TestAPIManager(TestSupport):
         self.session.commit()
 
         self.manager.create_api(self.LazyPerson)
+        self.manager.create_api(self.LazyPerson, relation_name='computers')
         response = self.app.get('/api/lazyperson/1/computers')
         assert 200 == response.status_code
         data = loads(response.data)
