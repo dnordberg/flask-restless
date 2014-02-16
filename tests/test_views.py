@@ -279,6 +279,9 @@ class TestAPI(TestSupport):
                                 methods=['GET', 'PATCH', 'POST', 'DELETE'])
         self.manager.create_api(self.Computer,
                                 methods=['GET', 'POST', 'PATCH'])
+        self.manager.create_api(self.Computer,
+                                relationname='programs',
+                                methods=['GET', 'POST', 'PATCH'])
 
         # setup the URLs for the Car manufacturer API
         self.manager.create_api(self.CarManufacturer,

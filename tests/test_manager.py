@@ -224,10 +224,13 @@ class TestAPIManager(TestSupport):
         # allow all
         self.manager.create_api(self.Person, include_columns=None,
                                 url_prefix='/all')
+        # if computers is included, must also include a
+        # field from computers since include is explicit
         self.manager.create_api(self.Person,
-                                include_columns= ('age', 'birth_date',
-                                                  'computers', 'id',
-                                                  'is_minor', 'name', 'other'),
+                                include_columns=('age', 'birth_date',
+                                                 'computers', 'computers.name',
+                                                 'id', 'is_minor', 'name',
+                                                 'other'),
                                 url_prefix='/all2')
         # allow some
         self.manager.create_api(self.Person, include_columns=('name', 'age'),
@@ -249,10 +252,10 @@ class TestAPIManager(TestSupport):
         response = self.app.get('/all/person/{0}'.format(personid))
         for column in 'name', 'age', 'other', 'birth_date', 'computers':
             assert column in loads(response.data)
-        import ipdb; ipdb.set_trace()
         response = self.app.get('/all2/person/{0}'.format(personid))
         for column in 'name', 'age', 'other', 'birth_date', 'computers':
             assert column in loads(response.data)
+
 
         # get some
         response = self.app.get('/some/person/{0}'.format(personid))
@@ -496,7 +499,7 @@ class TestAPIManager(TestSupport):
         self.session.commit()
 
         self.manager.create_api(self.LazyPerson)
-        self.manager.create_api(self.LazyPerson, relation_name='computers')
+        self.manager.create_api(self.LazyPerson, relationname='computers')
         response = self.app.get('/api/lazyperson/1/computers')
         assert 200 == response.status_code
         data = loads(response.data)

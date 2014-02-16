@@ -93,7 +93,8 @@ class APIManager(object):
     BLUEPRINTNAME_FORMAT = '{0}{1}'
 
     def __init__(self, app=None, session=None, flask_sqlalchemy_db=None,
-                 preprocessors=None, postprocessors=None):
+                 preprocessors=None, postprocessors=None,
+                 relationname=None):
         self.init_app(app, session, flask_sqlalchemy_db, preprocessors,
                       postprocessors)
 
