@@ -314,9 +314,6 @@ def to_dict(instance, deep=None, exclude=None, include=None,
     # recursively call _to_dict on each of the `deep` relations
     deep = deep or {}
     for relation, rdeep in deep.items():
-        # Skip relation if its included in exclude_columns
-        if exclude is not None  and relation in exclude:
-            continue
         # Get the related value so we can see if it is None, a list, a query
         # (as specified by a dynamic relationship loader), or an actual
         # instance of a model.
@@ -337,6 +334,11 @@ def to_dict(instance, deep=None, exclude=None, include=None,
         if include_methods is not None:
             newmethods = [method.split('.', 1)[1] for method in include_methods
                           if method.split('.', 1)[0] == relation]
+        # Skip relation if its included in exclude_columns
+        if exclude is not None and relation in exclude:
+            continue
+        if include and not include_relations and not newinclude and relation not in include:
+            continue
         if is_like_list(instance, relation):
             result[relation] = [to_dict(inst, rdeep, exclude=newexclude,
                                         include=newinclude,

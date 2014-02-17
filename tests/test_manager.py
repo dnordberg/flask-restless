@@ -228,9 +228,8 @@ class TestAPIManager(TestSupport):
         # field from computers since include is explicit
         self.manager.create_api(self.Person,
                                 include_columns=('age', 'birth_date',
-                                                 'computers', 'computers.name',
-                                                 'id', 'is_minor', 'name',
-                                                 'other'),
+                                                 'computers', 'id', 'is_minor',
+                                                 'name', 'other'),
                                 url_prefix='/all2')
         # allow some
         self.manager.create_api(self.Person, include_columns=('name', 'age'),
