@@ -805,7 +805,7 @@ class API(ModelView):
         return dict(page=page_num, objects=objects, total_pages=total_pages,
                     num_results=num_results)
 
-    def _inst_to_dict(self, inst):
+    def _inst_to_dict(self, inst, relations=None):
         """Returns the dictionary representation of the specified instance.
 
         This method respects the include and exclude columns specified in the
@@ -813,7 +813,7 @@ class API(ModelView):
 
         """
         # create a placeholder for the relations of the returned models
-        relations = frozenset(get_relations(self.model))
+        relations = relations or frozenset(get_relations(self.model))
         # do not follow relations that will not be included in the response
         if self.include_columns is not None:
             cols = frozenset(self.include_columns)
@@ -1010,33 +1010,13 @@ class API(ModelView):
                                                 relationinstid)
                 if related_value_instance is None:
                     abort(404)
-                result = to_dict(related_value_instance, deep)
+                result = self._inst_to_dict(related_value_instance, relations)
             else:
                 # for security purposes, don't transmit list as top-level JSON
                 if is_like_list(instance, relationname):
                     result = self._paginated(list(related_value), deep)
                 else:
-                    result = to_dict(related_value, deep)
-            # TODO: remove this
-            # related_value = getattr(instance, relationname)
-            # # create a placeholder for the relations of the returned models
-            # related_model = get_related_model(self.model, relationname)
-            # relations = frozenset(get_relations(related_model))
-            # deep = dict((r, {}) for r in relations)
-            # # for security purposes, don't transmit list as top-level JSON
-            # if is_like_list(instance, relationname):
-            #     for colname, key in get_foreign_keys(related_model):
-            #         if "%s.%s" % (self.model.__tablename__,
-            #                       primary_key_name(self.model)) in repr(key):
-            #             if not 'filters' in search_params:
-            #                 search_params['filters'] = []
-            #             search_params['filters'].append({'name': colname,
-            #                                              'op': '==',
-            #                                              'val': instid})
-
-            #     return self._search(related_model, search_params)
-            # else:
-            #     result = self._inst_to_dict(related_value, deep)
+                    result = self._inst_to_dict(related_value, relations)
         for postprocessor in self.postprocessors['GET_SINGLE']:
             postprocessor(result=result)
         return jsonpify(result)
