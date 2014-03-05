@@ -521,7 +521,10 @@ def strings_to_dates(model, dictionary):
             elif value in CURRENT_TIME_MARKERS:
                 result[fieldname] = getattr(func, value.lower())()
             else:
-                result[fieldname] = parse_datetime(value).astimezone(pytz.utc)
+                date = parse_datetime(value)
+                if date.tzinfo is not None:
+                    date = date.astimezone(pytz.utc)
+                result[fieldname] = date
         else:
             result[fieldname] = value
     return result
