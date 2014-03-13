@@ -29,6 +29,7 @@ Not yet released.
   :http:method:`get` and :http:method:`patch` requests that access multiple
   resources.
 - #263: Adds Python 3.3 support; drops Python 2.5 support.
+- #293: allows :class:`sqlalchemy.Time` fields in JSON responses.
 
 Version 0.12.1
 --------------

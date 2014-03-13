@@ -11,6 +11,7 @@
 """
 from datetime import date
 from datetime import datetime
+from datetime import timedelta
 
 import dateutil
 from flask import json
@@ -423,6 +424,19 @@ class TestAPI(TestSupport):
         diff = datetime.utcnow() - inception_time
         assert diff.days == 0
         assert (diff.seconds + diff.microseconds / 1000000.0) < 3600
+
+    def test_serialize_time(self):
+        """Test for getting the JSON representation of a time field."""
+        self.manager.create_api(self.User)
+        now = datetime.now().time()
+        user = self.User(id=1, email='foo', wakeup=now)
+        self.session.add(user)
+        self.session.commit()
+
+        response = self.app.get('/api/user/1')
+        assert response.status_code == 200
+        data = loads(response.data)
+        assert data['wakeup'] == now.isoformat()
 
     def test_post_with_submodels(self):
         """Tests the creation of a model with a related field."""
