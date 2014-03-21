@@ -321,6 +321,23 @@ class TestAPI(TestSupport):
         inst = to_dict(person, deep)
         assert loads(response.data) == inst
 
+        # Test the integrity exception by violating the unique 'name' field
+        # of person
+        response = self.app.post('/api/person',
+                                 data=dumps({'name': u'George', 'age': 23}))
+        assert response.status_code == 201
+
+        # This errors as expected
+        response = self.app.post('/api/person',
+                                 data=dumps({'name': u'George', 'age': 23}))
+        assert response.status_code == 400
+
+        # For issue #158 we make sure that the previous failure is rolled back
+        # so that we can add valid entries again
+        response = self.app.post('/api/person',
+                                 data=dumps({'name': u'Benjamin', 'age': 23}))
+        assert response.status_code == 201
+
     def test_post_m2m(self):
         """Test for creating a new instance of the database model that has a
         many to many relation that uses an association object to allow extra

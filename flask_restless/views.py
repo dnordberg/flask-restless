@@ -34,6 +34,8 @@ from flask import json
 from flask import jsonify as _jsonify
 from flask import request
 from flask.views import MethodView
+from sqlalchemy.exc import DataError
+from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm.exc import MultipleResultsFound
@@ -58,7 +60,6 @@ from .helpers import to_dict
 from .helpers import upper_keys
 from werkzeug.exceptions import BadRequest
 
-from .helpers import get_foreign_keys
 from .search import create_query
 from .search import search
 
@@ -1159,8 +1160,10 @@ class API(ModelView):
 
             return jsonify(headers=headers, **result), 201
         except self.validation_exceptions as exception:
+            current_app.logger.exception(str(exception))
             return self._handle_validation_exception(exception)
-        except IntegrityError as exception:
+        except (DataError, IntegrityError, ProgrammingError) as exception:
+            self.session.rollback()
             current_app.logger.exception(str(exception))
             return jsonify(message=str(exception)), 400
 
@@ -1255,7 +1258,8 @@ class API(ModelView):
         except self.validation_exceptions as exception:
             current_app.logger.exception(str(exception))
             return self._handle_validation_exception(exception)
-        except IntegrityError as exception:
+        except (DataError, IntegrityError, ProgrammingError) as exception:
+            self.session.rollback()
             current_app.logger.exception(str(exception))
             return jsonify(message=str(exception)), 400
 
