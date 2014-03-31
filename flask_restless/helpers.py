@@ -342,7 +342,12 @@ def to_dict(instance, deep=None, exclude=None, include=None,
         # Skip relation if its included in exclude_columns
         if exclude is not None and relation in exclude:
             continue
-        if include and not include_relations and not newinclude and relation not in include:
+        # If include is specified but no relations are included, skip
+        if include is not None and not include_relations and not newinclude and not relation in include:
+            continue
+        # If include is specified but relation is not in include_relations or
+        # include, skip
+        if include is not None and relation not in include_relations and relation not in include:
             continue
         if is_like_list(instance, relation):
             result[relation] = [to_dict(inst, rdeep, exclude=newexclude,

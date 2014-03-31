@@ -255,7 +255,6 @@ class TestAPIManager(TestSupport):
         for column in 'name', 'age', 'other', 'birth_date', 'computers':
             assert column in loads(response.data)
 
-
         # get some
         response = self.app.get('/some/person/{0}'.format(personid))
         for column in 'name', 'age':
