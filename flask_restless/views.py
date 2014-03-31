@@ -1146,7 +1146,9 @@ class API(ModelView):
             self.session.add(instance)
             self.session.commit()
             result = self._inst_to_dict(instance)
-            primary_key = str(result[primary_key_name(instance)])
+            # Get primary key from instance instead of result since we may have
+            # excluded it unintentionally
+            primary_key = str(getattr(instance, primary_key_name(instance)))
 
             # The URL at which a client can access the newly created instance
             # of the model.
