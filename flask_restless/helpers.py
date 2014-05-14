@@ -509,15 +509,16 @@ def get_or_create(session, model, attrs):
 
 def string_to_date(value):
     "Returns a valid date from a string"
-    if value.strip() == '':
-        date = None
-    elif value in CURRENT_TIME_MARKERS:
-        date = getattr(func, value.lower())()
-    else:
-        date = parse_datetime(value)
-        if date.tzinfo is not None:
-            date = date.astimezone(pytz.utc)
-    return date
+    if value is not None:
+        if value.strip() == '':
+            value = None
+        elif value in CURRENT_TIME_MARKERS:
+            value = getattr(func, value.lower())()
+        else:
+            value = parse_datetime(value)
+            if value.tzinfo is not None:
+                value = value.astimezone(pytz.utc)
+    return value
 
 
 def strings_to_dates(model, dictionary):
@@ -538,5 +539,7 @@ def strings_to_dates(model, dictionary):
     result = {}
     for fieldname, value in dictionary.items():
         if is_date_field(model, fieldname) and value is not None:
-            result[fieldname] = string_to_date(model, fieldname, value)
+            result[fieldname] = string_to_date(value)
+        else:
+            result[fieldname] = value
     return result
