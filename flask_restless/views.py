@@ -58,6 +58,7 @@ from .helpers import session_query
 from .helpers import strings_to_dates
 from .helpers import to_dict
 from .helpers import upper_keys
+from .helpers import get_foreign_keys
 from werkzeug.exceptions import BadRequest
 
 from .search import create_query
@@ -909,13 +910,6 @@ class API(ModelView):
         responses, see :ref:`searchformat`.
 
         """
-        # try to get search query from the request query parameters
-        try:
-            search_params = json.loads(request.args.get('q', '{}'))
-        except (TypeError, ValueError, OverflowError) as exception:
-            current_app.logger.exception(str(exception))
-            return jsonify(message='Unable to decode data'), 400
-
         for preprocessor in self.preprocessors['GET_MANY']:
             preprocessor(search_params=search_params)
         # perform a filtered search
@@ -1015,7 +1009,15 @@ class API(ModelView):
             else:
                 # for security purposes, don't transmit list as top-level JSON
                 if is_like_list(instance, relationname):
-                    result = self._paginated(list(related_value), deep)
+                    for colname, key in get_foreign_keys(related_model):
+                        if "%s.%s" % (self.model.__tablename__,
+                                      primary_key_name(self.model)) in repr(key):
+                            if not 'filters' in search_params:
+                                search_params['filters'] = []
+                            search_params['filters'].append({'name': colname,
+                                                             'op': '==',
+                                                             'val': instid})
+                    return self._search(related_model, search_params)
                 else:
                     result = self._inst_to_dict(related_value, relations)
         for postprocessor in self.postprocessors['GET_SINGLE']:
