@@ -507,6 +507,19 @@ def get_or_create(session, model, attrs):
     return model(**attrs)
 
 
+def string_to_date(value):
+    "Returns a valid date from a string"
+    if value.strip() == '':
+        date = None
+    elif value in CURRENT_TIME_MARKERS:
+        date = getattr(func, value.lower())()
+    else:
+        date = parse_datetime(value)
+        if date.tzinfo is not None:
+            date = date.astimezone(pytz.utc)
+    return date
+
+
 def strings_to_dates(model, dictionary):
     """Returns a new dictionary with all the mappings of `dictionary` but
     with date strings mapped to :class:`datetime.datetime` objects.
@@ -525,15 +538,5 @@ def strings_to_dates(model, dictionary):
     result = {}
     for fieldname, value in dictionary.items():
         if is_date_field(model, fieldname) and value is not None:
-            if value.strip() == '':
-                result[fieldname] = None
-            elif value in CURRENT_TIME_MARKERS:
-                result[fieldname] = getattr(func, value.lower())()
-            else:
-                date = parse_datetime(value)
-                if date.tzinfo is not None:
-                    date = date.astimezone(pytz.utc)
-                result[fieldname] = date
-        else:
-            result[fieldname] = value
+            result[fieldname] = string_to_date(model, fieldname, value)
     return result

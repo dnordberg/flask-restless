@@ -22,6 +22,7 @@ from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 from .helpers import session_query
 from .helpers import get_related_association_proxy_model
+from .helpers import string_to_date, is_date_field
 
 
 def _sub_operator(model, argument, fieldname):
@@ -375,6 +376,8 @@ class QueryBuilder(object):
                 val = getattr(model, filt.otherfield)
             # for the sake of brevity...
             create_op = QueryBuilder._create_operation
+            if is_date_field(model, fname):
+                val = string_to_date(val)
             param = create_op(model, fname, filt.operator, val, relation)
             filters.append(param)
         return filters
