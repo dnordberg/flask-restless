@@ -299,8 +299,7 @@ def to_dict(instance, deep=None, exclude=None, include=None,
     elif include is not None:
         columns = (c for c in columns if c in include)
     # create a dictionary mapping column name to value
-    result = dict((col, getattr(instance, col)) for col in columns
-                  if not (col.startswith('__') or col in COLUMN_BLACKLIST))
+    result = dict((col, getattr(instance, col)) for col in columns if not ('__' in col or col in COLUMN_BLACKLIST))
     # add any included methods
     if include_methods is not None:
         result.update(dict((method, getattr(instance, method)())
