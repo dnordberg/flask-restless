@@ -979,7 +979,7 @@ class API(ModelView):
         # try to get search query from the request query parameters
         try:
             search_params = json.loads(request.args.get('q', '{}'))
-        except (TypeError, ValueError, OverflowError), exception:
+        except (TypeError, ValueError, OverflowError) as exception:
             current_app.logger.exception(exception.message)
             return jsonify(message='Unable to decode data'), 400
         if instid is None:
